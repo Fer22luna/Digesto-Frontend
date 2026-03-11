@@ -1,24 +1,30 @@
 import React from 'react';
-import logo from './logo.svg';
 import './App.css';
+import Header from './components/Header';
+import Footer from './components/Footer';
+import { Toaster } from 'sonner';
+import { Routes, Route, Navigate } from 'react-router-dom';
+
+// pages - Admin only
+import AdminRegulationsList from './pages/admin/RegulationsList';
+import AdminRegulationNew from './pages/admin/RegulationNew';
+import AdminRegulationEditor from './pages/admin/RegulationEditor';
 
 function App() {
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="App flex flex-col min-h-screen">
+      <Toaster position="bottom-right" />
+      <Header />
+      <main className="flex-1 p-4">
+        <Routes>
+          <Route path="/" element={<Navigate to="/admin" replace />} />
+          <Route path="/admin" element={<AdminRegulationsList />} />
+          <Route path="/admin/regulations/new" element={<AdminRegulationNew />} />
+          <Route path="/admin/regulations/:id" element={<AdminRegulationEditor />} />
+        </Routes>
+      </main>
+      <Footer />
     </div>
   );
 }
