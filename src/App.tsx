@@ -9,12 +9,14 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import AdminRegulationsList from './pages/admin/RegulationsList';
 import AdminRegulationNew from './pages/admin/RegulationNew';
 import AdminRegulationEditor from './pages/admin/RegulationEditor';
+import HeaderRemoto from './components/HeaderRemoto';
 
 function App() {
 
   return (
     <div className="App flex flex-col min-h-screen">
       <Toaster position="bottom-right" />
+      <HeaderRemoto />
       <Header />
       <main className="flex-1 p-4">
         <Routes>
