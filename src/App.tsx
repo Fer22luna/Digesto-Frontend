@@ -17,7 +17,7 @@ function App() {
     <div className="App flex flex-col min-h-screen">
       <Toaster position="bottom-right" />
       <HeaderRemoto />
-      <Header />
+      {/* <Header /> */}
       <main className="flex-1 p-4">
         <Routes>
           <Route path="/" element={<Navigate to="/admin" replace />} />

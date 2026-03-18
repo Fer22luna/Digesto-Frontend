@@ -1,53 +1,53 @@
 import { useEffect, useRef } from "react";
 
+let headerScriptLoaded = false;
+
 const HeaderRemoto = () => {
   const headerContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Cargar el CSS
-    const link = document.createElement("link");
-    link.rel = "stylesheet";
-    link.href = "http://10.0.0.24/header/header.css";
-    document.head.appendChild(link);
+    // Cargar el CSS solo una vez
+    if (!document.querySelector('link[href="/remote-header/header.css"]')) {
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = "/remote-header/header.css";
+      document.head.appendChild(link);
+    }
 
     // Cargar el HTML del header
-    fetch("http://10.0.0.24/header/index.html")
-      .then((response) => response.text())
+    fetch("/remote-header/index.html")
+      .then((response) => {
+        if (!response.ok) throw new Error("Failed to fetch header");
+        return response.text();
+      })
       .then((html) => {
-        const container = document.createElement("div");
-        container.innerHTML = html;
+        if (!headerContainerRef.current) return;
 
-        const header = container.querySelector("header");
-        if (header && headerContainerRef.current) {
-          // Reemplazar rutas relativas de imágenes
-          header.querySelectorAll("img").forEach((img) => {
-            if (!img.src.startsWith("http")) {
-              img.src =
-                "http://10.0.0.24/header/" + img.getAttribute("src");
-            }
-          });
+        headerContainerRef.current.innerHTML = html;
 
-          // Limpiar el contenedor antes de insertar el nuevo header
-          headerContainerRef.current.innerHTML = "";
-          headerContainerRef.current.appendChild(header);
+        // Reemplazar rutas relativas de imágenes
+        headerContainerRef.current.querySelectorAll("img").forEach((img) => {
+          const src = img.getAttribute("src");
+          if (src && !src.startsWith("http") && !src.startsWith("/")) {
+            img.src = "/remote-header/" + src;
+          }
+        });
 
-          // Cargar el JS luego de insertar el header
+        // Cargar el JS solo una vez globalmente
+        if (!headerScriptLoaded) {
           const script = document.createElement("script");
-          script.src = "http://10.0.0.24/header/header.js";
+          script.src = "/remote-header/header.js";
           script.async = true;
-          headerContainerRef.current.appendChild(script);
+          document.body.appendChild(script);
+          headerScriptLoaded = true;
         }
-      });
+      })
+      .catch((error) => console.error("Error loading remote header:", error));
 
-    // Limpieza al desmontar componente
     return () => {
       if (headerContainerRef.current) {
         headerContainerRef.current.innerHTML = "";
       }
-      const css = document.querySelector(
-        'link[href="http://10.0.0.24/header/header.css"]'
-      );
-      if (css) css.remove();
     };
   }, []);
 
