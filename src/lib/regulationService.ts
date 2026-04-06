@@ -176,3 +176,26 @@ export function downloadRegulationPDF(regulation: Regulation): void {
   }
 }
 
+/**
+ * Registrar transición de estado de una normativa
+ */
+export async function recordStateTransition(
+  regulationId: string,
+  fromState: string,
+  toState: string,
+  notes?: string
+): Promise<void> {
+  try {
+    const payload = {
+      regulation_id: regulationId,
+      from_state: fromState,
+      to_state: toState,
+      notes: notes || `Cambio de estado de ${fromState} a ${toState}`,
+    };
+
+    await apiClient.post('/regulationstatetransitions', payload);
+  } catch (error) {
+    console.error('Error recording state transition:', error);
+    throw error;
+  }
+}

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Regulation, WorkflowState, LegalStatus } from '../../types';
-import { fetchRegulationById, updateRegulation } from '../../lib/regulationService';
+import { fetchRegulationById, updateRegulation, recordStateTransition } from '../../lib/regulationService';
 import { ChevronLeft } from 'lucide-react';
 
 const AdminRegulationEditor: React.FC = () => {
@@ -133,7 +133,20 @@ const AdminRegulationEditor: React.FC = () => {
 
     try {
       setIsSaving(true);
+      const previousState = regulation.state;
+      
+      // Actualizar el estado de la regulación
       await updateRegulation(regulation.id, { state: newState });
+      
+      // Registrar la transición de estado
+      await recordStateTransition(
+        regulation.id,
+        previousState || 'DRAFT',
+        newState,
+        `Cambio de estado de ${previousState} a ${newState}`
+      );
+      
+      // Recargar la regulación
       const updated = await fetchRegulationById(regulation.id);
       if (updated) {
         setRegulation(updated);
