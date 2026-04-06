@@ -2,19 +2,25 @@ import React, { useState } from 'react';
 import { Regulation } from '../types';
 import { format } from 'date-fns';
 import TypeBadge from './TypeBadge';
+import Modal from './ui/Modal';
 
 interface RegulationsTableProps {
   regulations: Regulation[];
   showState?: boolean;
   onDownloadPDF?: (regulation: Regulation) => void;
+  onDelete?: (id: string) => Promise<void>;
 }
 
 const RegulationsTable: React.FC<RegulationsTableProps> = ({
   regulations,
   showState = false,
   onDownloadPDF,
+  onDelete,
 }) => {
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [regulationToDelete, setRegulationToDelete] = useState<Regulation | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const getStateLabel = (state?: string) => {
     switch (state) {
@@ -44,6 +50,31 @@ const RegulationsTable: React.FC<RegulationsTableProps> = ({
       default:
         return { bg: '#f3f4f6', text: '#6b7280' };
     }
+  };
+
+  const handleDeleteClick = (regulation: Regulation) => {
+    setRegulationToDelete(regulation);
+    setDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!regulationToDelete || !onDelete) return;
+    try {
+      setIsDeleting(true);
+      await onDelete(regulationToDelete.id);
+      setDeleteModalOpen(false);
+      setRegulationToDelete(null);
+    } catch (error) {
+      console.error('Error deleting regulation:', error);
+      alert('Error al eliminar la normativa');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteModalOpen(false);
+    setRegulationToDelete(null);
   };
 
   if (regulations.length === 0) {
@@ -241,6 +272,39 @@ const RegulationsTable: React.FC<RegulationsTableProps> = ({
                     >
                       Editar
                     </button>
+
+                    {/* Botón Eliminar */}
+                    {onDelete && (
+                      <button
+                        onClick={() => handleDeleteClick(regulation)}
+                        style={{
+                          padding: '6px 12px',
+                          backgroundColor: '#dc2626',
+                          color: '#fff',
+                          border: 'none',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          fontSize: '12px',
+                          fontWeight: '600',
+                          fontFamily: 'system-ui',
+                          transition: 'all 0.2s ease',
+                          whiteSpace: 'nowrap',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = '#b91c1c';
+                          e.currentTarget.style.transform = 'translateY(-1px)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = '#dc2626';
+                          e.currentTarget.style.transform = 'translateY(0)';
+                        }}
+                      >
+                        🗑️ Eliminar
+                      </button>
+                    )}
                   </div>
                 </td>
               </tr>
@@ -265,6 +329,19 @@ const RegulationsTable: React.FC<RegulationsTableProps> = ({
       >
         <span>Mostrando {regulations.length} registros</span>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={deleteModalOpen}
+        title="Eliminar Normativa"
+        message={`¿Estás seguro de que deseas eliminar la normativa "${regulationToDelete?.reference}"? Esta acción no se puede deshacer.`}
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        isDangerous={true}
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+        isLoading={isDeleting}
+      />
     </div>
   );
 };

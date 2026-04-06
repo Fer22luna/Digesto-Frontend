@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Regulation } from '../../types';
-import { fetchAllRegulations, downloadRegulationPDF } from '../../lib/regulationService';
+import { fetchAllRegulations, downloadRegulationPDF, deleteRegulation } from '../../lib/regulationService';
 import RegulationsTable from '../../components/RegulationsTable';
 import { Link } from 'react-router-dom';
 
@@ -32,6 +32,18 @@ const AdminRegulationsList: React.FC = () => {
       console.error('Error loading regulations:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteRegulation(id);
+      // Recargar las normativas después de eliminar
+      await loadRegulations();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Error al eliminar normativa';
+      console.error('Error deleting regulation:', err);
+      throw new Error(message);
     }
   };
 
@@ -375,6 +387,7 @@ const AdminRegulationsList: React.FC = () => {
             regulations={filteredRegulations}
             showState={true}
             onDownloadPDF={downloadRegulationPDF}
+            onDelete={handleDelete}
           />
         )}
       </div>
